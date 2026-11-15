@@ -1,0 +1,13 @@
+{
+  "id": "io.github.yucling.example-plugin",
+  "name": "示例插件",
+  "version": "1.0.0",
+  "description": "示例插件。",
+  "author": "YUCLing",
+  "license": "CC0-1.0",
+  "icon": "icon.jpg",
+  "realms": {
+    "main": "main/index.mjs",
+    "preload": "preload/index.cjs"
+  }
+}

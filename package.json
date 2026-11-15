@@ -1,0 +1,16 @@
+{
+  "name": "@open-orpheus/plugin-example-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-orpheus/plugin-api": "0.20.0"
+  },
+  "devDependencies": {
+    "tsdown": "^0.23.7"
+  }
+}
