@@ -20,7 +20,7 @@ export default defineConfig({
   platform: "node",
   dts: false,
   clean: true,
-  copy: ["assets", "metadata.json"],
+  copy: [{ from: "assets/**/*", to: "dist/assets", flatten: false }, "metadata.json"],
   deps: {
     neverBundle: ["electron", "@open-orpheus/plugin-api"],
   },
