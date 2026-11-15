@@ -8,6 +8,7 @@
   "icon": "icon.jpg",
   "realms": {
     "main": "main/index.mjs",
-    "preload": "preload/index.cjs"
+    "preload": "preload/index.cjs",
+    "plugin-manager": "plugin-manager/index.cjs"
   }
 }

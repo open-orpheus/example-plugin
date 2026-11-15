@@ -1,15 +1,11 @@
-import type {
-  PreloadPluginModule,
-  PreloadPluginRuntime,
-  LoadedModule,
-} from "@open-orpheus/plugin-api/preload";
+import type { PluginModule, PluginRuntime, LoadedModule } from "@open-orpheus/plugin-api/preload";
 
 import { contextBridge } from "electron";
 
 let logger: LoadedModule<"@preload/logger">["default"];
 let channel: LoadedModule<"@preload/util">["channel"];
 
-export const activate: PreloadPluginModule["activate"] = async (runtime: PreloadPluginRuntime) => {
+export const activate: PluginModule["activate"] = async (runtime: PluginRuntime) => {
   logger = (await runtime.registry.load("@preload/logger")).default.child({ realm: "preload" });
   channel = (await runtime.registry.load("@preload/util")).channel;
 
@@ -22,6 +18,6 @@ export const activate: PreloadPluginModule["activate"] = async (runtime: Preload
   });
 };
 
-export const deactivate: PreloadPluginModule["deactivate"] = () => {
+export const deactivate: PluginModule["deactivate"] = () => {
   logger.info("Example plugin deactivated.");
 };

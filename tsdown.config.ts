@@ -11,6 +11,8 @@ export default defineConfig({
     cjs: {
       entry: {
         "preload/index": "src/preload.ts",
+        "plugin-manager/index": "src/plugin-manager/preload.ts",
+        "assets/ui": "src/plugin-manager/ui.ts",
       },
     },
   },
