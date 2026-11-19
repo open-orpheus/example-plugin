@@ -28,5 +28,15 @@ export const activate: PluginModule["activate"] = async (runtime: PluginRuntime)
 };
 
 export const deactivate: PluginModule["deactivate"] = () => {
+  // The registration lives in the renderer main world, so remove it there.
+  contextBridge.executeInMainWorld({
+    func: function () {
+      (
+        window as unknown as {
+          pluginManager?: { unregister(id: string): void };
+        }
+      ).pluginManager?.unregister("io.github.yucling.example-plugin");
+    },
+  });
   logger.info("Example plugin deactivated.");
 };
