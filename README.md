@@ -235,10 +235,13 @@ pnpm bundle   # asar pack dist dist.asar
   directory) or override the data directory with
   `OPEN_ORPHEUS_CUSTOM_DATA_DIR`.
 - Packaged: copy it into `{userData}/plugins/`.
-- Then enable it in the plugin manager.
+- Restart the application after copying — plugin discovery runs at startup —
+  then enable it in the plugin manager.
 
-Duplicate ids are rejected: both conflicting plugins are disabled and appear as
-an unavailable conflict in the plugin manager. Remove one and restart.
+Two user plugins with the same id are both rejected and appear as an unavailable
+conflict in the plugin manager. Remove one and restart. If the id collides with a
+plugin shipped with the application, the shipped plugin keeps the id and the
+other copy is ignored with a warning.
 
 ## Debugging
 
