@@ -6,13 +6,13 @@ export default defineConfig({
     esm: {
       entry: {
         "main/index": "src/index.ts",
+        "assets/configuration/index": "src/configuration.ts",
       },
     },
     cjs: {
       entry: {
         "preload/index": "src/preload.ts",
         "plugin-manager/index": "src/plugin-manager/preload.ts",
-        "assets/ui": "src/plugin-manager/ui.ts",
       },
     },
   },

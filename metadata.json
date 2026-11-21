@@ -6,6 +6,7 @@
   "author": "YUCLing",
   "license": "CC0-1.0",
   "icon": "icon.jpg",
+  "configuration": "configuration/index.mjs",
   "realms": {
     "main": "main/index.mjs",
     "preload": "preload/index.cjs",
