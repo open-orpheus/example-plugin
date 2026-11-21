@@ -164,9 +164,18 @@ the path is contained to the plugin's `assets/` directory.
 - Disabling during activation is applied once activation finishes.
 - A failed activation is not retried automatically; the plugin manager exposes a
   retry action.
-- Re-enabling the main realm reuses the cached ESM module instance. Preload and
-  plugin-manager bundles are re-evaluated after a full disable. Keep per-run
-  setup in `activate()` and teardown in `deactivate()`.
+- Main-realm entries are imported with a cache-busting `?t=<timestamp>-<rand>`
+  query, so each enable/disable cycle re-evaluates the entry. Within one epoch,
+  activation and cross-plugin `load()` share one evaluation. Preload and
+  plugin-manager bundles are re-evaluated after a full disable (not on retry).
+  Keep per-run setup in `activate()` and teardown in `deactivate()`.
+- Only the entry is cache-busted. Imported modules resolve without the query and
+  keep their first evaluation, so module-level state in a helper survives a
+  disable/enable and its top-level listeners are not re-registered. Never create
+  listeners, timers, IPC handlers, or `contextBridge` APIs at an imported
+  module's top level, and clean up explicitly in `deactivate()`. Shared chunks
+  and lazy-import chunks are also uncached; disable code splitting if you want
+  all of an entry's code to re-evaluate.
 - Editing plugin files requires restarting the plugin; there is no hot reload.
 
 ## Cross-plugin exports
