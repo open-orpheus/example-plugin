@@ -34,10 +34,10 @@ forking.
 
 Then:
 
-1. Change `metadata.json`'s `id`, `name`, and realm entry paths as needed.
-2. Update the id in `src/plugin-manager/ui.ts` and
-   `src/plugin-manager/preload.ts`, which register and unregister the settings
-   panel.
+1. Change `metadata.json`'s `id`, `name`, realm entry paths, and `configuration`
+   as needed.
+2. Update any plugin id you hardcoded yourself, such as in IPC channel names or
+   `assets://` URLs.
 3. Install dependencies, build, and type-check:
 
    ```sh
@@ -105,49 +105,53 @@ from the preload scope, so pass values explicitly.
 
 ### Plugin-manager realm — [`src/plugin-manager/preload.ts`](src/plugin-manager/preload.ts)
 
-Runs only while the plugin manager window is open. It sets up logging and removes
-the configuration panel on deactivation. The panel itself is a renderer script,
-[`src/plugin-manager/ui.ts`](src/plugin-manager/ui.ts), built to
-`dist/assets/ui.cjs` and injected in the plugin manager's main world through the
-plugin's `assets://` URL.
+Runs only while the plugin manager window is open. It is a privileged support
+realm: this example uses it to read host playback state over `ipcRenderer` and
+expose a small API through `contextBridge`. The panel itself is separate browser
+ESM, [`src/configuration.ts`](src/configuration.ts), built to
+`dist/assets/configuration/index.mjs`.
 
 ## Configuration panel
 
-The plugin manager exposes `window.pluginManager` in its main world:
+Declare the panel at the top level of `metadata.json`, relative to `assets/` and
+as an `.mjs` file:
+
+```json
+"configuration": "configuration/index.mjs"
+```
+
+The host imports that module and calls its exported `mount()`:
 
 ```ts
-manager.register(id, {
-  configuration: {
-    mount(element) {
-      element.textContent = "Settings";
-      return () => {
-        // optional cleanup
-      };
-    },
-  },
-});
+import type { ConfigurationModule } from "@open-orpheus/plugin-api/configuration";
+
+export const mount: ConfigurationModule["mount"] = (root, context) => {
+  root.textContent = "Settings";
+  return () => {
+    root.replaceChildren();
+  };
+};
 ```
 
 Important behavior:
 
-- `register` **throws** if the id is already registered. It never overwrites
-  another plugin's panel.
-- `unregister(id)` is idempotent. The plugin must call it in `deactivate()`;
-  [`preload.ts`](src/plugin-manager/preload.ts) does this with
-  `contextBridge.executeInMainWorld`.
-- Because the renderer script can be injected again after re-enabling the
-  plugin, [`ui.ts`](src/plugin-manager/ui.ts) calls `unregister` before
-  `register`. This makes the script safe to re-run.
-- `mount` may return an unmount callback, invoked when the panel closes or the
-  registration is removed.
+- There is no registration API and no plugin id to repeat. The host creates the
+  root element and decides when to mount.
+- `context` provides `pluginId`, `assetsBaseUrl` (the plugin's `assets/` root),
+  and an `AbortSignal`. `mount()` may be async; the host awaits it and awaits the
+  cleanup function it returns, if any.
+- The host appends a `?t=<timestamp>-<rand>` query to the entry URL, so each
+  enable/disable cycle re-evaluates it. Closing the panel only runs the returned
+  cleanup. Keep module top level declarative; put behavior in `mount()`.
+- Only the entry is cache-busted. Imported modules are shared for the life of
+  the window document; keep per-panel state in `mount()` and clean it up in the
+  returned callback.
+- The panel runs as browser ESM with no direct Node or Electron access. To use
+  host data, expose it from the plugin-manager preload realm through
+  `contextBridge`; the host activates that realm first when the plugin declares
+  it.
 - The `[all:initial]`-style reset in the host is presentation only; it is not a
   security boundary.
-
-The configuration script is served as an asset:
-
-```ts
-s.src = "assets://plugins/io.github.yucling.example-plugin/ui.cjs";
-```
 
 Assets are addressed as `assets://plugins/<plugin-id>/<path-inside-assets>`, and
 the path is contained to the plugin's `assets/` directory.
@@ -199,11 +203,11 @@ rejected with an `Activation readiness cycle` error.
 ├── src/
 │   ├── index.ts                    main-realm entry
 │   ├── preload.ts                  preload-realm entry
+│   ├── configuration.ts            browser ESM configuration panel
 │   └── plugin-manager/
-│       ├── preload.ts              plugin-manager realm entry
-│       └── ui.ts                   renderer configuration panel
+│       └── preload.ts              plugin-manager realm entry
 ├── metadata.json                   manifest and realm entries
-├── tsdown.config.ts                ESM main + CJS preload/renderer bundles
+├── tsdown.config.ts                ESM main/panel + CJS preload bundles
 ├── package.json
 └── LICENSE
 ```
@@ -228,7 +232,7 @@ dist/
 ├── plugin-manager/index.cjs
 ├── assets/
 │   ├── icon.jpg
-│   └── ui.cjs
+│   └── configuration/index.mjs
 └── metadata.json
 ```
 

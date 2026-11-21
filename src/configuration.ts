@@ -69,10 +69,8 @@ export const mount: ConfigurationModule["mount"] = (root) => {
   update();
   const timer = window.setInterval(update, 100);
 
-  return {
-    unmount() {
-      window.clearInterval(timer);
-      root.replaceChildren();
-    },
+  return () => {
+    window.clearInterval(timer);
+    root.replaceChildren();
   };
 };
