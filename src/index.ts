@@ -1,18 +1,17 @@
 import type { PluginModule, PluginRuntime, LoadedModule } from "@open-orpheus/plugin-api";
+import type {
+  LyricLine,
+  LyricsStore,
+} from "@open-orpheus/plugin-api/host/src/shared/types/lyrics.js";
 import { ipcMain, webContents } from "electron";
 
 import type { PlaybackState } from "./shared/playback";
-
-type Dispatcher = LoadedModule<"@main/lyrics">["lyricsDispatcher"];
-type LyricsStore = Dispatcher["lyrics"];
-type Lyrics = NonNullable<LyricsStore>["regular"];
-type LyricLine = Lyrics[number];
 
 const PLAYBACK_CHANNEL = "example-plugin.playback";
 const REQUEST_CHANNEL = "example-plugin.request";
 
 let logger: LoadedModule<"@main/logger">["default"];
-let lyrics: LyricsStore = null;
+let lyrics: LyricsStore | null = null;
 let time = 0;
 let playing = false;
 let playbackRate = 1;
